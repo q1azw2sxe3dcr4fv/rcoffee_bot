@@ -1,5 +1,6 @@
 import logging
 import sqlite3
+import re
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto
 from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQueryHandler, MessageHandler, filters
 
@@ -196,7 +197,7 @@ async def show_drinks_in_category(update: Update, context: ContextTypes.DEFAULT_
                 elif base_id.startswith('latte_pear_caramel'):
                     display_name = "Латте груша-карамель"
                 else:
-                    display_name = variants[0]['name']
+                    display_name = re.sub(r'\d+\s*мл|\d+', '', variants[0]['name']).strip()
                 
                 if len(variants) > 1:
                     keyboard.append([InlineKeyboardButton(display_name, callback_data=f"all_drink_details_{base_id}")])
@@ -218,7 +219,11 @@ async def show_drinks_in_category(update: Update, context: ContextTypes.DEFAULT_
             
             for base_drink in base_drinks:
                 base_id = base_drink['base_id']
-                display_name = base_drink['display_name']
+                
+                if category == 'coffee_classic':
+                    display_name = re.sub(r'\d+\s*мл|\d+', '', base_drink['display_name']).strip()
+                else:
+                    display_name = base_drink['display_name']
                 
                 variants = [d for d in drinks if d['id'] == base_id or d['id'].startswith(f"{base_id}_")]
                 
